@@ -27,7 +27,7 @@ type VirusSignature struct {
 func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	virusSignatures := []VirusSignature{
 		{SignatureID: "1", VirusName: "SampleVirus1", IPFSHash: "QmZQHmuXvF1AifghrGnNH4uey5iF1hzeRZvfevF2kg19nV", Uploader: "Org1", Timestamp: time.Now().Unix()},
-		{SignatureID: "2", VirusName: "SampleVirus2", IPFSHash: "QmZQHmuXvF1AifghrGnNH4uey5iF1hzeRZvfevF2kg19nW", Uploader: "Org2", Timestamp: time.Now().Unix()},
+		{SignatureID: "2", VirusName: "SampleVirus2", IPFSHash: "91d81538ae5ec6166e6192c768b40d7b622781467f3836", Uploader: "Org2", Timestamp: time.Now().Unix()},
 		// Add more sample virus signatures as needed
 	}
 
