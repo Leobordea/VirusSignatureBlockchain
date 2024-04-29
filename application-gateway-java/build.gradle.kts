@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    application
 }
 
 group = "org.example"
@@ -16,6 +16,10 @@ dependencies {
     compileOnly("io.grpc:grpc-api:1.63.0")
     runtimeOnly("io.grpc:grpc-netty-shaded:1.63.0")
     implementation("com.google.code.gson:gson:2.10.1")
+}
+
+application {
+    mainClass = "chaincodeClient.Main" 
 }
 
 tasks.test {

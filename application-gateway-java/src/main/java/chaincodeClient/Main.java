@@ -1,4 +1,4 @@
-package org.example;
+package chaincodeClient;
 
 /*
  * Copyright IBM Corp. All Rights Reserved.
