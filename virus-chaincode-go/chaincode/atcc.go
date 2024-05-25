@@ -21,13 +21,14 @@ type VirusSignature struct {
 	SignatureID string `json:"SignatureID"`
 	Timestamp   int64  `json:"Timestamp"`
 	Uploader    string `json:"Uploader"`
-	VirusName   string `json:"VirusName"`
+	SigName   string `json:"SigName"`
 }
 
 func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	virusSignatures := []VirusSignature{
-		{SignatureID: "1", VirusName: "SampleVirus1", IPFSHash: "QmZQHmuXvF1AifghrGnNH4uey5iF1hzeRZvfevF2kg19nV", Uploader: "Org1", Timestamp: time.Now().Unix()},
-		{SignatureID: "2", VirusName: "SampleVirus2", IPFSHash: "91d81538ae5ec6166e6192c768b40d7b622781467f3836", Uploader: "Org2", Timestamp: time.Now().Unix()},
+		{SignatureID: "1", SigName: "MD5", IPFSHash: "QmZQHmuXvF1AifghrGnNH4uey5iF1hzeRZvfevF2kg19nV", Uploader: "Org1", Timestamp: time.Now().Unix()},
+		{SignatureID: "2", SigName: "SHA1", IPFSHash: "91d81538ae5ec6166e6192c768b40d7b622781467f3836", Uploader: "Org2", Timestamp: time.Now().Unix()},
+		{SignatureID: "3", SigName: "SHA256", IPFSHash: "9e83e05bbf9b5db17ac0deec3b7ce6cba983f6dc50531c", Uploader: "Org1", Timestamp: time.Now().Unix()},
 		// Add more sample virus signatures as needed
 	}
 
@@ -44,29 +45,6 @@ func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface)
 	}
 
 	return nil
-}
-func (t *VirusChaincode) UploadSignature(ctx contractapi.TransactionContextInterface, ipfsHash string, signatureID string, uploader string, virusName string) error {
-	exists, err := t.SignatureExists(ctx, signatureID)
-	if err != nil {
-		return err
-	}
-	if exists {
-		return fmt.Errorf("the signature %s already exists", signatureID)
-	}
-	signature := VirusSignature{
-		IPFSHash:    ipfsHash,
-		SignatureID: signatureID,
-		Timestamp:   time.Now().Unix(),
-		Uploader:    uploader,
-		VirusName:   virusName,
-	}
-
-	virusJSON, err := json.Marshal(signature)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(signatureID, virusJSON)
 }
 
 func (t *VirusChaincode) GetSignature(ctx contractapi.TransactionContextInterface, signatureID string) (*VirusSignature, error) {
@@ -85,59 +63,6 @@ func (t *VirusChaincode) GetSignature(ctx contractapi.TransactionContextInterfac
 	}
 
 	return &signature, nil
-}
-func (t *VirusChaincode) UpdateSignature(ctx contractapi.TransactionContextInterface, newIPFSHash string, signatureID string, uploader string, newVirusName string) error {
-	// Retrieve the existing virus signature from the ledger
-	exists, err := t.SignatureExists(ctx, signatureID)
-	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("virus signature with ID %s does not exist", signatureID)
-	}
-
-	signature := VirusSignature{
-		IPFSHash:    newIPFSHash,
-		SignatureID: signatureID,
-		Timestamp:   time.Now().Unix(),
-		Uploader:    uploader,
-		VirusName:   newVirusName,
-	}
-
-	virusJSON, err := json.Marshal(signature)
-	if err != nil {
-		return err
-	}
-
-	return ctx.GetStub().PutState(signatureID, virusJSON)
-}
-func (t *VirusChaincode) DeleteSignature(ctx contractapi.TransactionContextInterface, signatureID string) error {
-	// Check if the virus signature exists
-	virusJSON, err := ctx.GetStub().GetState(signatureID)
-	if err != nil {
-		return fmt.Errorf("failed to read virus signature from ledger: %v", err)
-	}
-	if virusJSON == nil {
-		return fmt.Errorf("virus signature with ID %s does not exist", signatureID)
-	}
-
-	// Delete the virus signature from the ledger
-	err = ctx.GetStub().DelState(signatureID)
-	if err != nil {
-		return fmt.Errorf("failed to delete virus signature from ledger: %v", err)
-	}
-
-	return nil
-}
-
-func (t *VirusChaincode) SignatureExists(ctx contractapi.TransactionContextInterface, signatureID string) (bool, error) {
-	// Check if the virus signature exists
-	virusJSON, err := ctx.GetStub().GetState(signatureID)
-	if err != nil {
-		return false, fmt.Errorf("failed to read from world state: %v", err)
-	}
-
-	return virusJSON != nil, nil
 }
 
 func (t *VirusChaincode) GetAllSignatures(ctx contractapi.TransactionContextInterface) ([]*VirusSignature, error) {
