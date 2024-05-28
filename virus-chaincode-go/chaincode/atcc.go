@@ -17,7 +17,7 @@ type VirusChaincode struct {
 // Insert struct field in alphabetic order => to achieve determinism accross languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type VirusSignature struct {
-	IPFSHash    string `json:"IPFSHash"`
+	IPFS_CID    string `json:"IPFS_CID"`
 	SignatureID string `json:"SignatureID"`
 	Timestamp   int64  `json:"Timestamp"`
 	Uploader    string `json:"Uploader"`
@@ -26,9 +26,9 @@ type VirusSignature struct {
 
 func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
 	virusSignatures := []VirusSignature{
-		{SignatureID: "1", SigName: "MD5", IPFSHash: "QmZQHmuXvF1AifghrGnNH4uey5iF1hzeRZvfevF2kg19nV", Uploader: "Org1", Timestamp: time.Now().Unix()},
-		{SignatureID: "2", SigName: "SHA1", IPFSHash: "91d81538ae5ec6166e6192c768b40d7b622781467f3836", Uploader: "Org2", Timestamp: time.Now().Unix()},
-		{SignatureID: "3", SigName: "SHA256", IPFSHash: "9e83e05bbf9b5db17ac0deec3b7ce6cba983f6dc50531c", Uploader: "Org1", Timestamp: time.Now().Unix()},
+		{SignatureID: "1", SigName: "hypatia-md5-bloom", IPFS_CID: "QmSq1WxNRv7dL1rzCZSZDPuzfpWHMr4LXea1qGqmoUhTi5", Uploader: "Divested-Mobile", Timestamp: time.Now().Unix()},
+		{SignatureID: "2", SigName: "hypatia-sha1-bloom", IPFS_CID: "QmauVEv3ZTkdUapwxCqs3X9rsGBLjUNKn6XtKJRAi6XsnH", Uploader: "Divested-Mobile", Timestamp: time.Now().Unix()},
+		{SignatureID: "3", SigName: "hypatia-sha256-bloom", IPFS_CID: "QmSXSQUJLZL7qvGke9vP7LYg6VyxxZDbYJv27BJeFARkZJ", Uploader: "Divested-Mobile", Timestamp: time.Now().Unix()},
 		// Add more sample virus signatures as needed
 	}
 
