@@ -81,3 +81,13 @@ awk -v RS= '{gsub(/\n+/, "\\n")}1' ~/fabric-samples/test-network/organizations/p
 adb reverse tcp:7051 tcp:7051
 adb forward tcp:8022 tcp:8022
 adb forward tcp:5001 tcp:5001
+
+### Certs install
+
+cp ~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem .
+cp ~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/priv_sk .
+cp ~/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt .
+
+openssl pkcs12 -export -in User1@org1.example.com-cert.pem -inkey priv_sk -out User1-org1-cert.p12
+openssl pkcs12 -in User1-org1-cert.p12 -nodes -out /tmp/certbag.pem
+openssl pkcs12 -export -legacy -in /tmp/certbag.pem > legacy.p12
