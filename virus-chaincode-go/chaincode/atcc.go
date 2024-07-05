@@ -29,9 +29,9 @@ func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface)
 
 func (t *VirusChaincode) GetAllSignatures(ctx contractapi.TransactionContextInterface) ([]*VirusSignature, error) {
 	virusSignatures := []*VirusSignature{
-		{SignatureID: "1", SigName: "hypatia-md5-bloom", IPFS_CID: "QmYCX7WLMbMZh5sNpbHQJzv3fGc5aePGErdCDjQAkJkrC2", Uploader: "Divested-Mobile", Timestamp: 1717174878},
-		{SignatureID: "2", SigName: "hypatia-sha1-bloom", IPFS_CID: "QmamKMWmLDxBWBz5pdSwDCtmmXRyzzTB58FbTqU578S49c", Uploader: "Divested-Mobile", Timestamp: 1717174878},
-		{SignatureID: "3", SigName: "hypatia-sha256-bloom", IPFS_CID: "QmWEyhH59qQxfLiexBaU45Td9nTkzYBZw8noRDXBcuYw3y", Uploader: "Divested-Mobile", Timestamp: 1717174878},
+		{SignatureID: "1", SigName: "hypatia-md5-bloom", IPFS_CID: "QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB", Uploader: "Divested-Mobile", Timestamp: 1719910136},
+		{SignatureID: "2", SigName: "hypatia-sha1-bloom", IPFS_CID: "QmX75956Nbn5nVJzuup2zTwZiAMpoRYjV2WZe5PVziGwrk", Uploader: "Divested-Mobile", Timestamp: 1719910136},
+		{SignatureID: "3", SigName: "hypatia-sha256-bloom", IPFS_CID: "QmeYqDrrqDUANAB1vWE4gjW85ZBmow97jAL9rFAM8eSwBQ", Uploader: "Divested-Mobile", Timestamp: 1719910136},
 	}
 	return virusSignatures, nil
 }
