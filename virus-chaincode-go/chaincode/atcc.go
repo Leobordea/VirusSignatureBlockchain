@@ -3,6 +3,7 @@ package chaincode
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 	"log"
 	"github.com/hyperledger/fabric-contract-api-go/contractapi"
 )
@@ -16,34 +17,142 @@ type VirusChaincode struct {
 // Insert struct field in alphabetic order => to achieve determinism accross languages
 // golang keeps the order when marshal to json but doesn't order automatically
 type VirusSignature struct {
+  DocType     string `json:"docType"`
 	IPFS_CID    string `json:"IPFS_CID"`
-	SignatureID string `json:"SignatureID"`
+	SigName     string `json:"SigName"`
 	Timestamp   int64  `json:"Timestamp"`
 	Uploader    string `json:"Uploader"`
-	SigName     string `json:"SigName"`
-}
-
-func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
-	return nil
-}
-
-func (t *VirusChaincode) GetAllSignatures(ctx contractapi.TransactionContextInterface) ([]*VirusSignature, error) {
-	virusSignatures := []*VirusSignature{
-		{SignatureID: "1", SigName: "hypatia-md5-bloom", IPFS_CID: "QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB", Uploader: "Divested-Mobile", Timestamp: 1719910136},
-		{SignatureID: "2", SigName: "hypatia-sha1-bloom", IPFS_CID: "QmX75956Nbn5nVJzuup2zTwZiAMpoRYjV2WZe5PVziGwrk", Uploader: "Divested-Mobile", Timestamp: 1719910136},
-		{SignatureID: "3", SigName: "hypatia-sha256-bloom", IPFS_CID: "QmeYqDrrqDUANAB1vWE4gjW85ZBmow97jAL9rFAM8eSwBQ", Uploader: "Divested-Mobile", Timestamp: 1719910136},
-	}
-	return virusSignatures, nil
 }
 
 // Vote structure to hold vote details
 type Vote struct {
+  DocType string `json:"docType"`
 	Org     string `json:"org"`
 	Approve bool   `json:"approve"`
+	SignatureCID string   `json:"signature_cid"`
+}
+
+func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
+
+	virusSignatures := []VirusSignature{
+		{IPFS_CID: "QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB", SigName: "hypatia-md5-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		{IPFS_CID: "QmX75956Nbn5nVJzuup2zTwZiAMpoRYjV2WZe5PVziGwrk", SigName: "hypatia-sha1-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		{IPFS_CID: "QmeYqDrrqDUANAB1vWE4gjW85ZBmow97jAL9rFAM8eSwBQ", SigName: "hypatia-sha256-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		// Add more sample virus signatures as needed
+	}
+
+		for _, virusSignature := range virusSignatures {
+		err := t.UploadSignature(ctx, virusSignature.IPFS_CID, virusSignature.SigName, virusSignature.Uploader)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (t *VirusChaincode) UploadSignature(ctx contractapi.TransactionContextInterface, ipfs_cid string, signame string, uploader string) error {
+	exists, err := t.SignatureExists(ctx, ipfs_cid)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return fmt.Errorf("the signature %s already exists", ipfs_cid)
+	}
+	signature := VirusSignature{
+    DocType: "signature",
+		IPFS_CID:    ipfs_cid,
+		SigName:   signame,
+		Timestamp:   time.Now().Unix(),
+		Uploader:    uploader,
+	}
+
+	sigJSON, err := json.Marshal(signature)
+	if err != nil {
+		return err
+	}
+
+	return ctx.GetStub().PutState(ipfs_cid, sigJSON)
+}
+
+func (t *VirusChaincode) SignatureExists(ctx contractapi.TransactionContextInterface, ipfs_cid string) (bool, error) {
+	// Check if the virus signature exists
+	sigBytes, err := ctx.GetStub().GetState(ipfs_cid)
+	if err != nil {
+		return false, fmt.Errorf("failed to read from world state: %v", err)
+	}
+
+	return sigBytes != nil, nil
+}
+
+func (t *VirusChaincode) QueryLatestSignatureBySigName(ctx contractapi.TransactionContextInterface, sigName string) ([]*VirusSignature, error) {
+	// Construct the query string
+	queryString := fmt.Sprintf(`{
+		"selector": {
+			"docType": "signature",
+			"SigName": "%s"
+		},
+		"sort": [{
+			"Timestamp": "desc"
+		}],
+		"limit": 1
+	}`, sigName)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var signatures []*VirusSignature
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var signature VirusSignature
+		err = json.Unmarshal(queryResponse.Value, &signature)
+		if err != nil {
+			return nil, err
+		}
+
+		signatures = append(signatures, &signature)
+	}
+
+	return signatures, nil
+}
+
+func (t *VirusChaincode) GetAllSignatures(ctx contractapi.TransactionContextInterface) ([]*VirusSignature, error) {
+	queryString := `{"selector":{"docType":"signature"}}`
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return nil, err
+	}
+	defer resultsIterator.Close()
+
+	var signatures []*VirusSignature
+	for resultsIterator.HasNext() {
+		queryResponse, err := resultsIterator.Next()
+		if err != nil {
+			return nil, err
+		}
+
+		var signature VirusSignature
+		err = json.Unmarshal(queryResponse.Value, &signature)
+		if err != nil {
+			return nil, err
+		}
+
+		signatures = append(signatures, &signature)
+	}
+
+	return signatures, nil
 }
 
 // Vote allows an organization to cast a vote if they haven't voted before
-func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, approve bool) error {
+func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, approve bool, signature_cid string) error {
 	// Get the MSP ID of the invoking organization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
@@ -61,8 +170,10 @@ func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, appro
 
 	// Create a new vote
 	vote := Vote{
+    DocType: "vote",
 		Org:     clientMSPID,
 		Approve: approve,
+		SignatureCID: signature_cid,
 	}
 	voteJSON, err := json.Marshal(vote)
 	if err != nil {
@@ -74,60 +185,13 @@ func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, appro
 }
 
 // GetVote retrieves the vote for an organization
-func (s *VirusChaincode) GetVote(ctx contractapi.TransactionContextInterface, org string) (*Vote, error) {
-	voteAsBytes, err := ctx.GetStub().GetState(org)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read vote from world state: %v", err)
-	}
-	if voteAsBytes == nil {
-		return nil, fmt.Errorf("vote for org %s does not exist", org)
-	}
-
-	var vote Vote
-	err = json.Unmarshal(voteAsBytes, &vote)
-	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal vote: %v", err)
-	}
-
-	return &vote, nil
-}
-
-// CountVotes counts the votes for approval and disapproval
-func (s *VirusChaincode) CountVotes(ctx contractapi.TransactionContextInterface) (map[string]int, error) {
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
-	if err != nil {
-		return nil, fmt.Errorf("failed to get state by range: %v", err)
-	}
-	defer resultsIterator.Close()
-
-	voteCounts := map[string]int{"approve": 0, "disapprove": 0}
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, fmt.Errorf("failed to iterate over results: %v", err)
-		}
-
-		var vote Vote
-		err = json.Unmarshal(queryResponse.Value, &vote)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal vote: %v", err)
-		}
-
-		if vote.Approve {
-			voteCounts["approve"]++
-		} else {
-			voteCounts["disapprove"]++
-		}
-	}
-
-	return voteCounts, nil
-}
-
 // ListOrgsVoted lists all organizations that have voted along with their votes
-func (s *VirusChaincode) ListOrgsVoted(ctx contractapi.TransactionContextInterface) ([]Vote, error) {
-	resultsIterator, err := ctx.GetStub().GetStateByRange("", "")
+func (s *VirusChaincode) ListVotes(ctx contractapi.TransactionContextInterface) ([]Vote, error) {
+	queryString := `{"selector":{"docType":"vote"}}`
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get state by range: %v", err)
+		return nil, fmt.Errorf("failed to get query result: %v", err)
 	}
 	defer resultsIterator.Close()
 
@@ -145,14 +209,38 @@ func (s *VirusChaincode) ListOrgsVoted(ctx contractapi.TransactionContextInterfa
 		}
 
 		orgVote := Vote{
+			DocType:     vote.DocType,
 			Org:     vote.Org,
 			Approve: vote.Approve,
+			SignatureCID: vote.SignatureCID,
 		}
 		orgVotes = append(orgVotes, orgVote)
 	}
 
 	return orgVotes, nil
 }
+
+func (s *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.TransactionContextInterface, signatureCID string) (int, error) {
+	queryString := fmt.Sprintf(`{"selector":{"docType":"vote","approve":true,"signature_cid":"%s"}}`, signatureCID)
+
+	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get query result: %v", err)
+	}
+	defer resultsIterator.Close()
+
+	count := 0
+	for resultsIterator.HasNext() {
+		_, err := resultsIterator.Next()
+		if err != nil {
+			return 0, fmt.Errorf("failed to iterate over results: %v", err)
+		}
+		count++
+	}
+
+	return count, nil
+}
+
 
 func main() {
 	virusChaincode := new(VirusChaincode)

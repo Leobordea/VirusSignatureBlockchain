@@ -1,26 +1,30 @@
 # Test chaincode 2 orgs
 ./network.sh down
 
-./network.sh up createChannel
+./network.sh up createChannel -s couchdb
 
 ./network.sh deployCC -ccn basic -ccp ~/VirusSignatureBlockchain/virus-chaincode-go -ccl go
 
 ./network.sh deployCC -ccn basic -ccp ~/VirusSignatureBlockchain/virus-chaincode-go -ccl go -ccv 2
 
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"InitLedger","Args":[]}'
+
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"UploadSignature","Args":["f366890b5849c62660df94f2265d671b","extended","Divested-Mobile"]}'
+
 peer chaincode query -C mychannel -n basic -c '{"Args":["GetAllSignatures"]}'
 
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"Vote","Args":["true"]}'
+peer chaincode query -C mychannel -n basic -c '{"function":"QueryLatestSignatureBySigName","Args":["hypatia-md5-bloom"]}'
 
-peer chaincode query -C mychannel -n basic -c '{"Args":["CountVotes"]}'
+peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile "${PWD}/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem" -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt" --peerAddresses localhost:9051 --tlsRootCertFiles "${PWD}/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt" -c '{"function":"Vote","Args":["true","QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB"]}'
 
-peer chaincode query -C mychannel -n basic -c '{"Args":["ListOrgsVoted"]}'
+peer chaincode query -C mychannel -n basic -c '{"Args":["ListVotes"]}'
 
-peer chaincode query -C mychannel -n basic -c '{"function":"GetVote","Args":["Org2MSP"]}'
+peer chaincode query -C mychannel -n basic -c '{"function":"CountApprovedVotesBySignatureCID","Args":["QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB","hypatia-md5-bloom","Divested-Mobile"]}'
 
 ### 3 ORGs sequence
 ./network.sh down
 
-./network.sh up createChannel -c mychannel
+./network.sh up createChannel -s couchdb
 
 export PATH=${PWD}/../bin:$PATH
 export FABRIC_CFG_PATH=$PWD/../config/
