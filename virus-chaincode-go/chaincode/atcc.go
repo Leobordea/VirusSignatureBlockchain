@@ -105,20 +105,18 @@ func (t *VirusChaincode) QueryLatestSignatureBySigName(ctx contractapi.Transacti
 	defer resultsIterator.Close()
 
 	var signatures []*VirusSignature
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, err
-		}
-
-		var signature VirusSignature
-		err = json.Unmarshal(queryResponse.Value, &signature)
-		if err != nil {
-			return nil, err
-		}
-
-		signatures = append(signatures, &signature)
+	queryResponse, err := resultsIterator.Next()
+	if err != nil {
+		return nil, err
 	}
+
+	var signature VirusSignature
+	err = json.Unmarshal(queryResponse.Value, &signature)
+	if err != nil {
+		return nil, err
+	}
+
+	signatures = append(signatures, &signature)
 
 	return signatures, nil
 }
@@ -152,7 +150,7 @@ func (t *VirusChaincode) GetAllSignatures(ctx contractapi.TransactionContextInte
 }
 
 // Vote allows an organization to cast a vote if they haven't voted before
-func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, approve bool, signature_cid string) error {
+func (t *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, approve bool, signature_cid string) error {
 	// Get the MSP ID of the invoking organization
 	clientMSPID, err := ctx.GetClientIdentity().GetMSPID()
 	if err != nil {
@@ -186,7 +184,7 @@ func (s *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, appro
 
 // GetVote retrieves the vote for an organization
 // ListOrgsVoted lists all organizations that have voted along with their votes
-func (s *VirusChaincode) ListVotes(ctx contractapi.TransactionContextInterface) ([]Vote, error) {
+func (t *VirusChaincode) ListVotes(ctx contractapi.TransactionContextInterface) ([]Vote, error) {
 	queryString := `{"selector":{"docType":"vote"}}`
 
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
@@ -220,7 +218,7 @@ func (s *VirusChaincode) ListVotes(ctx contractapi.TransactionContextInterface) 
 	return orgVotes, nil
 }
 
-func (s *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.TransactionContextInterface, signatureCID string) (int, error) {
+func (t *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.TransactionContextInterface, signatureCID string) (int, error) {
 	queryString := fmt.Sprintf(`{"selector":{"docType":"vote","approve":true,"signature_cid":"%s"}}`, signatureCID)
 
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
