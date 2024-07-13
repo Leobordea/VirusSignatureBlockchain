@@ -157,15 +157,6 @@ func (t *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, appro
 		return fmt.Errorf("failed to get client MSP ID: %v", err)
 	}
 
-	// Check if the organization has already voted
-	voteAsBytes, err := ctx.GetStub().GetState(clientMSPID)
-	if err != nil {
-		return fmt.Errorf("failed to read vote from world state: %v", err)
-	}
-	if voteAsBytes != nil {
-		return fmt.Errorf("organization %s has already voted", clientMSPID)
-	}
-
 	// Create a new vote
 	vote := Vote{
     DocType: "vote",
@@ -177,9 +168,7 @@ func (t *VirusChaincode) Vote(ctx contractapi.TransactionContextInterface, appro
 	if err != nil {
 		return fmt.Errorf("failed to marshal vote: %v", err)
 	}
-
-	// Store the vote in the world state with the organization's MSP ID as the key
-	return ctx.GetStub().PutState(clientMSPID, voteJSON)
+	return ctx.GetStub().PutState(signature_cid + clientMSPID, voteJSON)
 }
 
 // GetVote retrieves the vote for an organization
@@ -218,12 +207,17 @@ func (t *VirusChaincode) ListVotes(ctx contractapi.TransactionContextInterface) 
 	return orgVotes, nil
 }
 
-func (t *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.TransactionContextInterface, signatureCID string) (int, error) {
+type ApproveCount struct {
+    Count int `json:"count"`
+}
+
+func (t *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.TransactionContextInterface, signatureCID string) (ApproveCount, error) {
 	queryString := fmt.Sprintf(`{"selector":{"docType":"vote","approve":true,"signature_cid":"%s"}}`, signatureCID)
 
+  var approvecount ApproveCount
 	resultsIterator, err := ctx.GetStub().GetQueryResult(queryString)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get query result: %v", err)
+		return approvecount, fmt.Errorf("failed to get query result: %v", err)
 	}
 	defer resultsIterator.Close()
 
@@ -231,12 +225,13 @@ func (t *VirusChaincode) CountApprovedVotesBySignatureCID(ctx contractapi.Transa
 	for resultsIterator.HasNext() {
 		_, err := resultsIterator.Next()
 		if err != nil {
-			return 0, fmt.Errorf("failed to iterate over results: %v", err)
+			return approvecount, fmt.Errorf("failed to iterate over results: %v", err)
 		}
 		count++
 	}
+  response := ApproveCount{Count: count}
 
-	return count, nil
+	return response, nil
 }
 
 

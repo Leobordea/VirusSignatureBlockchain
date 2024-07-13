@@ -19,7 +19,7 @@ peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.exa
 
 peer chaincode query -C mychannel -n basic -c '{"Args":["ListVotes"]}'
 
-peer chaincode query -C mychannel -n basic -c '{"function":"CountApprovedVotesBySignatureCID","Args":["QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB","hypatia-md5-bloom","Divested-Mobile"]}'
+peer chaincode query -C mychannel -n basic -c '{"function":"CountApprovedVotesBySignatureCID","Args":["QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB"]}'
 
 ### 3 ORGs sequence
 ./network.sh down
