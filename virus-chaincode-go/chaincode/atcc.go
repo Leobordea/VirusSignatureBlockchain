@@ -35,9 +35,9 @@ type Vote struct {
 func (t *VirusChaincode) InitLedger(ctx contractapi.TransactionContextInterface) error {
 
 	virusSignatures := []VirusSignature{
-		{IPFS_CID: "QmbR3sVeNPd1hp12sDh8Vz1BK7wretTenBe1sq5owNmDdB", SigName: "hypatia-md5-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
-		{IPFS_CID: "QmX75956Nbn5nVJzuup2zTwZiAMpoRYjV2WZe5PVziGwrk", SigName: "hypatia-sha1-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
-		{IPFS_CID: "QmeYqDrrqDUANAB1vWE4gjW85ZBmow97jAL9rFAM8eSwBQ", SigName: "hypatia-sha256-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		{IPFS_CID: "QmYCX7WLMbMZh5sNpbHQJzv3fGc5aePGErdCDjQAkJkrC2", SigName: "hypatia-md5-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		{IPFS_CID: "QmamKMWmLDxBWBz5pdSwDCtmmXRyzzTB58FbTqU578S49c", SigName: "hypatia-sha1-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
+		{IPFS_CID: "QmWEyhH59qQxfLiexBaU45Td9nTkzYBZw8noRDXBcuYw3y", SigName: "hypatia-sha256-bloom", Timestamp: time.Now().Unix(), Uploader: "Divested-Mobile"},
 		// Add more sample virus signatures as needed
 	}
 
